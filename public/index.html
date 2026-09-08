@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Telão - SUPERPASSWORD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: radial-gradient(circle at center, #1b2a41, #0b1320); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #game-container { background: #17283e; border-radius: 24px; padding: 40px; width: 600px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; position: relative;}
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .score-card { background: white; color: #17283e; padding: 15px 25px; border-radius: 12px; font-size: 2.5em; font-weight: 800; opacity: 0.5; }
+        .active-team-card { opacity: 1; transform: scale(1.1); transition: 0.3s; }
+        .team1 { color: #3498db; } .team2 { color: #e67e22; }
+        
+        .timer-circle { width: 120px; height: 120px; background: #17283e; border-radius: 50%; margin: 0 auto; display: flex; justify-content: center; align-items: center; font-size: 3em; font-weight: 800; border: 6px solid #f1c40f; box-shadow: 0 0 20px rgba(241, 196, 15, 0.4); transition: 0.2s;}
+        .timer-danger { border-color: #e74c3c; box-shadow: 0 0 30px rgba(231, 76, 60, 0.8); color: #e74c3c; animation: pulse 1s infinite; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .turn-label { font-size: 1.5em; margin-bottom: 15px; font-weight: 600; }
+        #victory-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(23, 40, 62, 0.95); border-radius: 24px; flex-direction: column; justify-content: center; align-items: center; z-index: 20;}
+        #victory-overlay h1 { font-size: 4em; margin: 0; text-transform: uppercase; font-weight: 900;}
+        #start-audio-btn { background: #3498db; color: white; border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 10px; cursor: pointer; font-family: inherit; font-weight: bold; margin-bottom: 20px;}
+    </style>
+</head>
+<body>
+    
+    <!-- Link de áudio gratuito para bip de relógio -->
+    <audio id="tick-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <div id="pin-display" style="position: absolute; top: 20px; background: #e74c3c; padding: 10px 20px; border-radius: 10px; font-size: 1.5em; font-weight: bold; z-index: 10;">
+        PIN da Sala: <span id="room-pin">...</span>
+    </div>
+
+    <div id="game-container">
+        <button id="start-audio-btn" onclick="initAudio()">CLIQUE AQUI PARA ATIVAR O SOM</button>
+        
+        <div id="turn-label" class="turn-label team1">Aguardando início...</div>
+        <div class="header-bar">
+            <div id="ui-team1" class="score-card team1"><i class="fa-solid fa-shield-halved"></i> <span id="score1">0</span></div>
+            <div class="timer-circle" id="timer">45</div>
+            <div id="ui-team2" class="score-card team2"><span id="score2">0</span> <i class="fa-solid fa-shield"></i></div>
+        </div>
+
+        <div id="victory-overlay">
+            <h2 style="color: white; margin: 0; font-size: 2em;">FIM DE JOGO!</h2>
+            <h1 id="winner-text">EQUIPE X VENCEU!</h1>
+            <p style="color: #a0aec0; font-size: 1.5em; margin-top: 20px;">Aguardando controle reiniciar...</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const tickSound = document.getElementById('tick-sound');
+        const timerUI = document.getElementById('timer');
+        let audioEnabled = false;
+
+        // Pede para o servidor criar uma sala assim que abrir
+        socket.emit('createRoom');
+
+        socket.on('roomCreated', (pin) => {
+            document.getElementById('room-pin').innerText = pin;
+        });
+
+        function initAudio() {
+            audioEnabled = true;
+            document.getElementById('start-audio-btn').style.display = 'none';
+            tickSound.play().then(() => { tickSound.pause(); tickSound.currentTime = 0; }).catch(e=>{});
+        }
+
+        socket.on('updateState', (state) => {
+            document.getElementById('score1').innerText = state.score1;
+            document.getElementById('score2').innerText = state.score2;
+            timerUI.innerText = state.timeLeft;
+            
+            document.getElementById('ui-team1').classList.toggle('active-team-card', state.activeTeam === 1);
+            document.getElementById('ui-team2').classList.toggle('active-team-card', state.activeTeam === 2);
+            
+            if (state.winner) {
+                document.getElementById('victory-overlay').style.display = 'flex';
+                const winnerText = document.getElementById('winner-text');
+                winnerText.innerText = `EQUIPE ${state.winner} VENCEU!`;
+                winnerText.className = state.winner === 1 ? "team1" : "team2";
+                tickSound.pause();
+                return;
+            } else {
+                document.getElementById('victory-overlay').style.display = 'none';
+            }
+
+            const turnLabel = document.getElementById('turn-label');
+            if(state.isRunning) {
+                turnLabel.innerText = `Vez da Equipe ${state.activeTeam} (Meta: ${state.targetScore})`;
+                turnLabel.className = "turn-label " + (state.activeTeam === 1 ? "team1" : "team2");
+                
+                if(state.timeLeft <= 10 && state.timeLeft > 0) {
+                    timerUI.classList.add('timer-danger');
+                    if (audioEnabled) tickSound.play().catch(()=>{});
+                } else {
+                    timerUI.classList.remove('timer-danger');
+                    tickSound.pause();
+                    tickSound.currentTime = 0;
+                }
+            } else {
+                turnLabel.innerText = "Equipe " + state.activeTeam + ", preparem-se!";
+                turnLabel.style.color = "white";
+                timerUI.classList.remove('timer-danger');
+                tickSound.pause();
+                tickSound.currentTime = 0;
+            }
+        });
+    </script>
+</body>
+</html>
