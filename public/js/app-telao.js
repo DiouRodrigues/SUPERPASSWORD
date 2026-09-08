@@ -1,5 +1,9 @@
 // public/js/app-telao.js
-const socket = io("https://superpassword.onrender.com/");
+const SOCKET_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? undefined // Usa o host atual (localhost:3000)
+    : "https://superpassword.onrender.com";
+
+const socket = io(SOCKET_URL);
 const tickSound = document.getElementById('tick-sound');
 const timerUI = document.getElementById('timer');
 let audioEnabled = false;
