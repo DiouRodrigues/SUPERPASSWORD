@@ -1,5 +1,5 @@
 // public/js/app-telao.js
-const socket = io();
+const socket = io("https://superpassword.onrender.com/");
 const tickSound = document.getElementById('tick-sound');
 const timerUI = document.getElementById('timer');
 let audioEnabled = false;

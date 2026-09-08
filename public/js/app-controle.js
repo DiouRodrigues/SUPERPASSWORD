@@ -1,5 +1,5 @@
 // public/js/app-controle.js
-const socket = io();
+const socket = io("https://superpassword.onrender.com/");
 let myPin = null;
 
 // Gerenciamento de Telas do Celular
