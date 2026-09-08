@@ -74,14 +74,21 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('startTurn', (data) => {
-        const room = rooms[data.pin];
-        if (!room || room.isRunning || room.winner) return;
-        
-        if (data.target) room.targetScore = data.target;
-        room.isRunning = true;
-        room.timeLeft = 60;
-        io.to(data.pin).emit('updateState', getRoomState(room));
+    
+       socket.on('startTurn', ({ pin, target, customTime }) => {
+    const room = rooms[pin];
+    if (!room) return;
+
+    room.targetScore = target;
+    room.timeLeft = customTime || 60; // Usa o tempo customizado ou padrão (ex: 60s)
+    room.isRunning = true;
+    
+    // Sorteia uma nova palavra automaticamente ao iniciar o turno
+  // Ao acertar ou passar a palavra:
+room.currentWord = room.palavras[Math.floor(Math.random() * room.palavras.length)];
+// Alterna a equipe (ex: de 1 para 2, ou de 2 para 1)
+room.activeTeam = room.activeTeam === 1 ? 2 : 1;
+io.to(pin).emit('updateState', room);
 
         room.timerInterval = setInterval(() => {
             room.timeLeft--;

@@ -38,9 +38,10 @@ socket.on('error', (msg) => {
 document.getElementById('btn-start-turn').addEventListener('click', () => {
     if (!myPin) return;
     const target = parseInt(document.getElementById('input-target').value) || 10;
-    socket.emit('startTurn', { pin: myPin, target: target });
+    const customTime = parseInt(document.getElementById('input-time').value) || 60;
+    
+    socket.emit('startTurn', { pin: myPin, target: target, customTime: customTime });
 });
-
 // 3. Ações de Jogo (Passar / Acertar)
 document.getElementById('btn-pass').addEventListener('click', () => {
     if (myPin) socket.emit('passWord', myPin);
@@ -60,6 +61,15 @@ socket.on('updateState', (state) => {
     // Atualiza o título da equipe ativa
     document.getElementById('lobby-team-title').innerText = `Sua vez: Equipe ${state.activeTeam}`;
     document.getElementById('play-team-title').innerText = `Jogando: Equipe ${state.activeTeam}`;
+
+    if (state.isRunning) {
+        showScreen('play');
+        // Exibe a palavra atual que o servidor sorteou para esta rodada/turno
+        document.getElementById('word').innerText = state.currentWord;
+    } else {
+        showScreen('playerLobby');
+        document.getElementById('input-target').value = state.targetScore;
+    }
 
     // Se houver um vencedor
     if (state.winner) {
