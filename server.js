@@ -31,7 +31,7 @@ function puxarNovaPalavra(room) {
     return room.words.pop();
 }
 
-// NOVO: Função para limpar o objeto antes de enviar aos jogadores
+// Função para limpar o objeto antes de enviar aos jogadores
 function getRoomState(room) {
     return {
         pin: room.pin,
@@ -60,7 +60,6 @@ io.on('connection', (socket) => {
         
         socket.join(pin);
         socket.emit('roomCreated', pin);
-        // Sempre usamos getRoomState(rooms[pin]) no emit
         socket.emit('updateState', getRoomState(rooms[pin]));
     });
 
@@ -74,30 +73,28 @@ io.on('connection', (socket) => {
         }
     });
 
-    
-       socket.on('startTurn', ({ pin, target, customTime }) => {
-    const room = rooms[pin];
-    if (!room) return;
+    socket.on('startTurn', ({ pin, target, customTime }) => {
+        const room = rooms[pin];
+        if (!room) return;
 
-    room.targetScore = target;
-    room.timeLeft = customTime || 60; // Usa o tempo customizado ou padrão (ex: 60s)
-    room.isRunning = true;
-    
-    // Sorteia uma nova palavra automaticamente ao iniciar o turno
-  // Ao acertar ou passar a palavra:
-room.currentWord = room.palavras[Math.floor(Math.random() * room.palavras.length)];
-// Alterna a equipe (ex: de 1 para 2, ou de 2 para 1)
-room.activeTeam = room.activeTeam === 1 ? 2 : 1;
-io.to(pin).emit('updateState', room);
+        room.targetScore = target;
+        room.timeLeft = customTime || 60; // Usa o tempo customizado ou padrão
+        room.isRunning = true;
+        
+        // Sorteia a palavra corretamente usando a função existente
+        room.currentWord = puxarNovaPalavra(room);
+        
+        io.to(pin).emit('updateState', getRoomState(room));
 
         room.timerInterval = setInterval(() => {
             room.timeLeft--;
             if (room.timeLeft <= 0) {
                 clearInterval(room.timerInterval);
                 room.isRunning = false;
-                room.activeTeam = room.activeTeam === 1 ? 2 : 1;
+                room.activeTeam = room.activeTeam === 1 ? 2 : 1; // Alterna a equipe
             }
-            io.to(data.pin).emit('updateState', getRoomState(room));
+            // Correção aplicada: de data.pin para pin para não travar o relógio
+            io.to(pin).emit('updateState', getRoomState(room));
         }, 1000);
     });
 
@@ -132,10 +129,12 @@ io.to(pin).emit('updateState', room);
         if (!room) return;
         clearInterval(room.timerInterval);
         room.score1 = 0; room.score2 = 0;
-        room.winner = null; room.isRunning = false; room.timeLeft = 45;
+        room.winner = null; room.isRunning = false; room.timeLeft = 60;
         room.currentWord = puxarNovaPalavra(room);
         io.to(pin).emit('updateState', getRoomState(room));
     });
 });
 
-server.listen(3000, '0.0.0.0', () => console.log('Servidor rodando!'));
+// Correção aplicada: Usa a porta dinâmica do Render ou a 3000 se for local
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => console.log(`Servidor rodando na porta ${PORT}!`));
