@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
         rooms[pin] = {
             pin: pin, score1: 0, score2: 0,
             words: embaralhar(todasAsPalavras),
-            timeLeft: 45, activeTeam: 1, isRunning: false,
+            timeLeft: 60, activeTeam: 1, isRunning: false,
             targetScore: 10, winner: null, timerInterval: null
         };
         rooms[pin].currentWord = puxarNovaPalavra(rooms[pin]);
@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
         
         if (data.target) room.targetScore = data.target;
         room.isRunning = true;
-        room.timeLeft = 45;
+        room.timeLeft = 60;
         io.to(data.pin).emit('updateState', getRoomState(room));
 
         room.timerInterval = setInterval(() => {
