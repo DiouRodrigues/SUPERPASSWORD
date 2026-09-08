@@ -51,7 +51,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        const socket = io("https://superpassword.onrender.com");
         const tickSound = document.getElementById('tick-sound');
         const timerUI = document.getElementById('timer');
         let audioEnabled = false;
