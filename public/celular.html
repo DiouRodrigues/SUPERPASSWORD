@@ -2,115 +2,83 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle - SUPERPASSWORD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b1320">
+    <title>superpassword-cel</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="./css/styles.css">
+
     <style>
-        body { font-family: 'Poppins', sans-serif; background: radial-gradient(circle at center, #1b2a41, #0b1320); color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 20px; }
-        #game-container { background: #17283e; border-radius: 24px; padding: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; }
-        #word-display { background: linear-gradient(135deg, #f5f7fa, #c3cfe2); color: #17283e; font-size: 2.2em; font-weight: 900; padding: 30px 10px; border-radius: 16px; margin: 20px 0; text-transform: uppercase; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .controls { display: flex; gap: 10px; }
-        .btn { flex: 1; padding: 15px; font-size: 1.1em; font-weight: 800; color: white; border: none; border-radius: 12px; cursor: pointer; text-transform: uppercase; transition: 0.1s; display: flex; align-items: center; justify-content: center; gap: 5px;}
-        .btn:active { transform: translateY(4px); box-shadow: none !important; }
-        .btn-pass { background: #e74c3c; box-shadow: 0 6px 0 #c0392b; }
-        .btn-correct { background: #2ecc71; box-shadow: 0 6px 0 #27ae60; }
-        .btn-start { background: #3498db; box-shadow: 0 6px 0 #2980b9; width: 100%; margin-top: 15px; }
-        
-        .config-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;}
-        .config-box input { width: 60px; padding: 8px; border-radius: 8px; border: none; text-align: center; font-weight: bold; font-size: 1.2em;}
+        .input-pin { width: 100%; padding: 15px; font-size: 1.5em; text-align: center; border-radius: 12px; border: 2px solid var(--team1-color); background: var(--bg-dark); color: white; margin: 20px 0; text-transform: uppercase; font-weight: bold; outline: none; }
+        .input-pin:focus { border-color: var(--color-success); }
+        .config-box { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .config-box input { width: 70px; padding: 10px; border-radius: 8px; border: none; text-align: center; font-weight: bold; font-size: 1.2em; background: var(--bg-dark); color: white;}
     </style>
 </head>
 <body>
-   <!-- TELA DE LOGIN (PIN) -->
-    <div id="login-container" style="background: #17283e; border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center;">
-        <h2>Entrar na Sala</h2>
-        <input type="text" id="pin-input" placeholder="Digite o PIN" style="width: 100%; padding: 15px; font-size: 1.5em; text-align: center; border-radius: 12px; border: none; margin: 20px 0; text-transform: uppercase; font-weight: bold;">
-        <button class="btn btn-start" onclick="joinRoom()">CONECTAR</button>
-    </div>
 
-    <!-- TELA DO JOGO (Oculta por padrão) -->
-    <div id="game-container" style="display: none;">
-        <h2 id="turn-title">Seu Turno: Equipe <span id="team-indicator">1</span></h2>
+    <div class="container" style="max-width: 450px;">
         
-        <div id="word-display">AGUARDANDO</div>
-        
-        <div class="controls" id="game-controls">
-            <button class="btn btn-pass" onclick="emitAction('passWord')"><i class="fa-solid fa-forward-step"></i> Passar</button>
-            <button class="btn btn-correct" onclick="emitAction('correctGuess')">Acertou <i class="fa-solid fa-check"></i></button>
+        <!-- TELA 1: Login / Digitar PIN -->
+        <div id="screen-login" class="screen active">
+            <h2>ENTRAR NA SALA</h2>
+            <p>Olhe para o telão e digite o código:</p>
+            <input type="number" id="input-pin" class="input-pin" placeholder="0000" maxlength="4">
+            <button id="btn-join" class="btn btn-primary">
+                <i class="fa-solid fa-plug"></i> CONECTAR
+            </button>
         </div>
-        
-        <div id="start-section">
+
+        <!-- TELA 2: Lobby do Jogador (Configurações da rodada) -->
+        <div id="screen-player-lobby" class="screen">
+            <h2 id="lobby-team-title">Sua vez: Equipe 1</h2>
+            <div class="word-display" style="font-size: 1.5em; opacity: 0.5;">ESCONDIDA</div>
+            
             <div class="config-box">
                 <label>Acertos para Vencer:</label>
                 <input type="number" id="input-target" value="10" min="1">
             </div>
-            <button class="btn btn-start" onclick="startTurnBtn()"><i class="fa-solid fa-play"></i> Iniciar Cronômetro</button>
+            
+            <button id="btn-start-turn" class="btn btn-primary">
+                <i class="fa-solid fa-play"></i> INICIAR CRONÔMETRO
+            </button>
         </div>
 
-        <button id="reset-btn" class="btn btn-start" style="display: none; background: #9b59b6; box-shadow: 0 6px 0 #8e44ad;" onclick="emitAction('resetGame')">
-            <i class="fa-solid fa-rotate-right"></i> Nova Partida
-        </button>
+        <!-- TELA 3: Jogo (Palavra e Botões) -->
+        <div id="screen-play" class="screen">
+            <h2 id="play-team-title">Jogando: Equipe 1</h2>
+            
+            <div id="word" class="word-display">AGUARDANDO</div>
+            
+            <div class="controls-row">
+                <button id="btn-pass" class="btn btn-pass">
+                    <i class="fa-solid fa-forward-step"></i> PASSAR
+                </button>
+                <button id="btn-correct" class="btn btn-correct">
+                    ACERTOU <i class="fa-solid fa-check"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA 4: Reiniciar após fim de jogo -->
+        <div id="screen-end" class="screen">
+            <h2>JOGO ENCERRADO!</h2>
+            <div class="word-display" id="end-winner-text" style="font-size: 2em; background: var(--color-warning);">VITÓRIA!</div>
+            
+            <button id="btn-reset" class="btn" style="background: #9b59b6; box-shadow: 0 6px 0 #8e44ad;">
+                <i class="fa-solid fa-rotate-right"></i> NOVA PARTIDA
+            </button>
+        </div>
+
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io("https://superpassword.onrender.com");
-        let isGameRunning = false;
-        let myPin = null;
-
-        function joinRoom() {
-            const pin = document.getElementById('pin-input').value.trim();
-            if(pin) socket.emit('joinRoom', pin);
-        }
-
-        socket.on('joinedRoom', (pin) => {
-            myPin = pin;
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-        });
-
-        socket.on('error', (msg) => {
-            alert(msg);
-        });
-
-        socket.on('updateState', (state) => {
-            isGameRunning = state.isRunning;
-            
-            if (state.winner) {
-                document.getElementById('turn-title').innerText = "Jogo Encerrado!";
-                document.getElementById('word-display').innerText = `VITÓRIA EQ. ${state.winner}`;
-                document.getElementById('game-controls').style.display = 'none';
-                document.getElementById('start-section').style.display = 'none';
-                document.getElementById('reset-btn').style.display = 'flex';
-                return;
-            }
-
-            document.getElementById('turn-title').innerHTML = `Seu Turno: Equipe <span id="team-indicator">${state.activeTeam}</span>`;
-            document.getElementById('reset-btn').style.display = 'none';
-            document.getElementById('game-controls').style.display = 'flex';
-
-            if (state.isRunning) {
-                document.getElementById('word-display').innerText = state.currentWord;
-                document.getElementById('start-section').style.display = 'none';
-            } else {
-                document.getElementById('word-display').innerText = "ESCONDIDA";
-                document.getElementById('start-section').style.display = 'block';
-                document.getElementById('input-target').value = state.targetScore;
-            }
-        });
-
-        function startTurnBtn() {
-            if(!myPin) return;
-            const target = parseInt(document.getElementById('input-target').value) || 10;
-            socket.emit('startTurn', { pin: myPin, target: target });
-        }
-
-        function emitAction(action) {
-            if (!myPin) return;
-            if (action !== 'resetGame' && !isGameRunning) return;
-            socket.emit(action, myPin);
-        }
-    </script>
+    <!-- Módulo Principal do Controle -->
+      <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="./js/app-controle.js"></script>
 </body>
 </html>

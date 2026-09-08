@@ -1,0 +1,212 @@
+/* =========================================
+   1. VARIÁVEIS (Design System)
+========================================= */
+:root {
+    /* Cores de Fundo */
+    --bg-dark: #0b1320;
+    --bg-card: #17283e;
+    
+    /* Cores das Equipes e Ações */
+    --team1-color: #3498db;
+    --team2-color: #e67e22;
+    --color-success: #2ecc71;
+    --color-danger: #e74c3c;
+    --color-warning: #f1c40f;
+    
+    /* Sombras 3D e Neumorfismo */
+    --shadow-card: 0 20px 50px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.1);
+    --shadow-word: 0 10px 20px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.8);
+    
+    /* Espaçamentos e Bordas */
+    border-radius-md: 12px;
+    border-radius-lg: 24px;
+}
+
+/* =========================================
+   2. RESET E COMPORTAMENTO PWA
+========================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* Evita que o usuário selecione texto sem querer ao tocar rápido na tela */
+    user-select: none; 
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at center, #1b2a41, var(--bg-dark));
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Previne o efeito de "elástico" (pull-to-refresh) em celulares */
+    overscroll-behavior-y: contain; 
+    /* Lida com a área segura de iPhones (Notch) */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* =========================================
+   3. LAYOUT PRINCIPAL E TELAS
+========================================= */
+.container {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg, 24px);
+    padding: 60px;
+    width: 100%;
+    max-width: 1000px;
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Telas do jogo (Gerenciadas via JS) */
+.screen { 
+    display: none; 
+    text-align: center; 
+    /* Transição suave ao trocar de tela */
+    animation: fadeMorph 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.screen.active { 
+    display: block; 
+}
+
+/* =========================================
+   4. COMPONENTES: PAINÉIS E TEXTOS
+========================================= */
+h1, h2 { text-transform: uppercase; margin-bottom: 15px; }
+
+.word-display {
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    color: var(--bg-card);
+    font-size: clamp(2em, 5vw, 3.5em); /* Fonte responsiva */
+    font-weight: 900;
+    padding: 30px 20px;
+    border-radius: 16px;
+    margin: 30px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: var(--shadow-word);
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    transition: transform 0.2s ease;
+}
+
+/* =========================================
+   5. COMPONENTES: BOTÕES 3D
+========================================= */
+.btn {
+    padding: 15px 20px;
+    font-size: 1.2em;
+    font-weight: 800;
+    font-family: inherit;
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md, 12px);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    transition: transform 0.1s, box-shadow 0.1s;
+    width: 100%;
+}
+
+.btn:active { 
+    transform: translateY(6px); 
+    box-shadow: 0 0 0 transparent !important; 
+}
+
+.btn-pass { background: var(--color-danger); box-shadow: 0 6px 0 #c0392b; }
+.btn-correct { background: var(--color-success); box-shadow: 0 6px 0 #27ae60; }
+.btn-primary { background: var(--team1-color); box-shadow: 0 6px 0 #2980b9; margin-top: 15px; }
+
+.controls-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* =========================================
+   6. ANIMAÇÕES (GLITCH E TRANSIÇÕES)
+========================================= */
+@keyframes fadeMorph {
+    0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Adicione esta classe via JS quando a palavra mudar para um efeito dinâmico */
+.glitch-effect {
+    animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+}
+
+@keyframes glitch {
+    0% { transform: translate(0) }
+    20% { transform: translate(-2px, 2px) }
+    40% { transform: translate(-2px, -2px) }
+    60% { transform: translate(2px, 2px) }
+    80% { transform: translate(2px, -2px) }
+    100% { transform: translate(0) }
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 25px rgba(241, 196, 15, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(241, 196, 15, 0);
+    }
+}
+
+.timer-circle {
+    width: 120px;
+    height: 120px;
+    background: rgba(23, 40, 62, 0.6); /* Fundo escuro semi-transparente */
+    backdrop-filter: blur(8px);          /* Desfoque interno do vidro */
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    font-weight: 900;
+    border: 6px solid var(--color-warning);
+    box-shadow: 0 0 25px rgba(241, 196, 15, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.5);
+    animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    transition: 0.2s;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    70% {
+        box-shadow: 0 0 0 25px rgba(241, 196, 15, 0), inset 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(241, 196, 15, 0), inset 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.timer-danger {
+    border-color: var(--color-danger);
+    animation: pulse-danger 1s infinite cubic-bezier(0.4, 0, 0.6, 1) !important;
+}
+
+@keyframes pulse-danger {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.8);
+    }
+    70% {
+        box-shadow: 0 0 0 35px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
